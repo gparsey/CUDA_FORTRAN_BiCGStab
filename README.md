@@ -14,6 +14,8 @@ greatly appreciated. The implementation of the QR decomposition is working corre
 
 Testing has been performed using the CUDA 9.1 Toolkit and iFort 17.0.4.196
 
+GPU being used is a Tesla P4 card
+
 FILES
 =====
 maklefile_testcuda : Makefile (with debugging flags) used for the test case
