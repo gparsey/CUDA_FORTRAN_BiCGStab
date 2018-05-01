@@ -16,6 +16,8 @@ Testing has been performed using the CUDA 9.1 Toolkit and iFort 17.0.4.196
 
 FILES
 =====
+maklefile_testcuda : Makefile (with debugging flags) used for the test case
+
 test_fortcuda.for : Main test program with a simple test system (5x5 matrix with 13 non-zeros,
                     a right hand side, and a known solution) and three logical flags
                     for using the three implemented solvers. This is written in f77 

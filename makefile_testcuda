@@ -1,0 +1,54 @@
+#
+#                   M A K E F I L E    F O R   T E S T _ C U D A
+#
+#================================================================================
+# Fortran compiler
+FC=ifort
+
+#Profiler flags
+#PROFILER= -profile-functions -profile-loops=all -profile-loops-report=2 -p
+PROFILER= -g -check all
+
+# Fortran compiler flags
+FCFLAGS= -mcmodel=medium -shared-intel -traceback $(PROFILER) #-check bounds
+
+# Optimization
+OPT = -O0
+
+# Linker Loader
+LD=$(FC)
+
+# Linker Loader flags
+LDFLAGS=  -ldl $(FCFLAGS)
+
+FCOPTS               = -fpp # -w
+
+# CUDA
+CUDA_INC = -I/usr/local/cuda/include 
+CUDA_LIB = -L/usr/local/cuda/lib64 -lcudart -lcusolver -lcusparse -lcublas
+
+# Name of the executable
+PROGRAM= test_cuda
+
+
+# Objects to be compiled
+OBJS= test_fortcuda.o
+
+OBJS_F90=cuda_fortran_solvers.f90
+
+# Generates executable
+$(PROGRAM): $(OBJS) $(OBJS_F90)
+	$(LD) $(LDFLAGS) $(FCOPTS) $(OBJS) $(OBJS_F90) \
+	$(CUDA_INC) $(CUDA_LIB) -lm -o $@
+
+# Generate  object files
+$(OBJS):%.o:%.for
+	$(FC) $(FCFLAGS) $(FCOPTS) $(OPT) -c $< -o $@
+
+$(OBJS_F90):%.o:%.f90
+	$(FC) $(OPT) $(FCFLAGS) $(FCOPTS) $(CUDA_INC) $(CUDA_LIB) -c $< -o $@
+
+# Clean up build directory
+clean:
+	rm -f *~ *.o *.d $(PROGRAM)
+
