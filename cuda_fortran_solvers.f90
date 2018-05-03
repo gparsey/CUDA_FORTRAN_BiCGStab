@@ -1,5 +1,5 @@
 !
-! CUDA 
+! CUDA
 !
 module cuda_cusolve_map
 
@@ -384,9 +384,9 @@ module cuda_cusolve_map
  integer(c_int), value :: m
  integer(c_int),value :: nnz
  type(c_ptr), value :: descrA
- type(c_ptr) :: csrValA
- type(c_ptr) :: csrRowPtrA
- type(c_ptr) :: csrColIndA
+ type(c_ptr), value :: csrValA
+ type(c_ptr), value :: csrRowPtrA
+ type(c_ptr), value :: csrColIndA
  type(c_ptr), value :: info
  end function cusparseDcsrsv_analysis
 
@@ -398,8 +398,8 @@ module cuda_cusolve_map
  type(c_ptr), value :: handle
  integer(c_int), value :: n
  real(c_double)::alpha
- type(c_ptr) :: x
- integer(c_int) :: incx
+ type(c_ptr),value :: x
+ integer(c_int),value :: incx
  end function cublasDscal
 
  integer(c_int) function cublasDaxpy(handle,n,alpha,x,incx,y,incy) &
@@ -410,9 +410,9 @@ module cuda_cusolve_map
  type(c_ptr), value :: handle
  integer(c_int), value :: n
  real(c_double)::alpha
- type(c_ptr) :: x
+ type(c_ptr),value :: x
  integer(c_int) :: incx
- type(c_ptr) :: y
+ type(c_ptr),value :: y
  integer(c_int) :: incy
  end function cublasDaxpy
 
@@ -423,9 +423,9 @@ module cuda_cusolve_map
  implicit none
  type(c_ptr), value :: handle
  integer(c_int), value :: n
- type(c_ptr) :: x
+ type(c_ptr),value :: x
  integer(c_int) :: incx
- type(c_ptr) :: y
+ type(c_ptr),value :: y
  integer(c_int) :: incy
  end function cublasDcopy
 
@@ -436,9 +436,9 @@ module cuda_cusolve_map
  implicit none
  type(c_ptr), value :: handle
  integer(c_int), value :: n
- type(c_ptr) :: x
+ type(c_ptr),value :: x
  integer(c_int) :: incx
- type(c_ptr) :: result
+ type(c_ptr),value :: result
  end function cublasDnrm2
 
  integer(c_int) function cublasDdot(handle,n,x,incx,y,incy,result) &
@@ -503,10 +503,10 @@ module cuda_cusolve_map
  integer(c_int),value::CUSPARSE_OPERATION
  integer(c_int),value::m
  type(c_ptr), value:: descrA
- type(c_ptr)::csrValM
- type(c_ptr)::csrRowPtrA
- type(c_ptr)::csrColIndA
- type(c_ptr),value::info
+ type(c_ptr), value::csrValM
+ type(c_ptr), value::csrRowPtrA
+ type(c_ptr), value::csrColIndA
+ type(c_ptr), value::info
  end function cusparseDcsrilu0
 
  integer(c_int) function cusparseCreateCsrsv2Info(info) &
@@ -535,9 +535,9 @@ module cuda_cusolve_map
  integer(c_int),value::m
  integer(c_int),value::nnz
  type(c_ptr), value:: descrA
- type(c_ptr)::csrValM
- type(c_ptr)::csrRowPtrA
- type(c_ptr)::csrColIndA
+ type(c_ptr), value::csrValM
+ type(c_ptr), value::csrRowPtrA
+ type(c_ptr), value::csrColIndA
  type(c_ptr),value::info
  integer(c_int) :: pBufferSize
  end function cusparseDcsrilu02_bufferSize
@@ -553,9 +553,9 @@ module cuda_cusolve_map
  integer(c_int),value::m
  integer(c_int),value::nnz
  type(c_ptr), value:: descrA
- type(c_ptr)::csrValM
- type(c_ptr)::csrRowPtrA
- type(c_ptr)::csrColIndA
+ type(c_ptr), value::csrValM
+ type(c_ptr), value::csrRowPtrA
+ type(c_ptr), value::csrColIndA
  type(c_ptr),value::info
  integer(c_int) :: pBufferSize
  end function cusparseDcsrsv2_bufferSize
@@ -570,10 +570,10 @@ module cuda_cusolve_map
  integer(c_int),value::m
  integer(c_int),value::nnz
  type(c_ptr), value:: descrA
- type(c_ptr)::csrValM
- type(c_ptr)::csrRowPtrA
- type(c_ptr)::csrColIndA
- type(c_ptr),value::info
+ type(c_ptr), value::csrValM
+ type(c_ptr), value::csrRowPtrA
+ type(c_ptr), value::csrColIndA
+ type(c_ptr), value::info
  integer(c_int),value::policy
  type(c_ptr)::pBuffer
  end function cusparseDcsrilu02_analysis
@@ -589,9 +589,9 @@ module cuda_cusolve_map
  integer(c_int),value::m
  integer(c_int),value::nnz
  type(c_ptr), value:: descrA
- type(c_ptr)::csrValM
- type(c_ptr)::csrRowPtrA
- type(c_ptr)::csrColIndA
+ type(c_ptr), value::csrValM
+ type(c_ptr), value::csrRowPtrA
+ type(c_ptr), value::csrColIndA
  type(c_ptr),value::info
  integer(c_int),value::policy
  type(c_ptr)::pBuffer
@@ -748,6 +748,32 @@ ierr2 = 0
 isol_found=0
 imax_num_it =  10
 rho = 0.0d0
+
+! write(*,*) 'Overwriting solution space'
+! n=5
+! inz = 13
+
+! b(1) = 1.0d0; b(2)=1.0d0; b(3)=5.0d0; b(4)=2.0d0
+! b(5) = 1.0d0; b(6)=3.0d0; b(7)=2.0d0; b(8)=1.0d0
+! b(9) = 6.0d0; b(10)=3.0d0; b(11)=1.0d0; b(12)=2.0d0
+! b(13) = 1.0d0
+
+! rhs(1)=1.0d0;rhs(2)=2.0d0;rhs(3)=1.0d0;rhs(4)=3.0d0;rhs(5)=0.0d0
+
+! ib(1) = 1;ib(2) = 5;ib(3) = 7
+! ib(4) = 9;ib(5) = 12;ib(6) = 14
+
+! jb(1) = 1; jb(2)  = 2; jb(3) = 4; jb(4) = 5
+! jb(5) = 2; jb(6)  = 3; jb(7) = 2; jb(8) = 3
+! jb(9) = 1; jb(10) = 3;jb(11) = 4;jb(12) = 4
+! jb(13) = 5
+
+!solution
+! x(1)=0.08
+! x(2)=0.2
+! x(3)=0.6
+! x(4)=0.72
+! x(5)=-1.44
 
 
 ! define pointers to host memory
@@ -1301,10 +1327,41 @@ parameter (one=1.0d0)
 real(kind=dp) zero
 parameter (zero=1.0d0)
 
+
+
+
 ierr2 = 0
 isol_found=0
 imax_num_it =  10
 rho = 0.0d0
+norm_val = 1.d5
+norm_val0 = 1.d5
+
+! write(*,*) 'Overwriting solution space'
+! n=5
+! inz = 13
+
+! b(1) = 1.0d0; b(2)=1.0d0; b(3)=5.0d0; b(4)=2.0d0
+! b(5) = 1.0d0; b(6)=3.0d0; b(7)=2.0d0; b(8)=1.0d0
+! b(9) = 6.0d0; b(10)=3.0d0; b(11)=1.0d0; b(12)=2.0d0
+! b(13) = 1.0d0
+
+! rhs(1)=1.0d0;rhs(2)=2.0d0;rhs(3)=1.0d0;rhs(4)=3.0d0;rhs(5)=0.0d0
+
+! ib(1) = 1;ib(2) = 5;ib(3) = 7
+! ib(4) = 9;ib(5) = 12;ib(6) = 14
+
+! jb(1) = 1; jb(2)  = 2; jb(3) = 4; jb(4) = 5
+! jb(5) = 2; jb(6)  = 3; jb(7) = 2; jb(8) = 3
+! jb(9) = 1; jb(10) = 3;jb(11) = 4;jb(12) = 4
+! jb(13) = 5
+
+!solution
+! x(1)=0.08
+! x(2)=0.2
+! x(3)=0.6
+! x(4)=0.72
+! x(5)=-1.44
 
 ! define pointers to host memory
 ArowsIndex = c_loc(ib)
@@ -1505,7 +1562,7 @@ ierr2 = ierr2 + ierr
 ierr = cudaDeviceSynchronize()
 ierr2 = ierr2 + ierr
 if (ierr2 .ne. 0 ) then
-    write (*, '(A, I2)') " Error during U of LU calculation ", ierr2
+    write (*, '(A, I2)') " Error during LU calculation ", ierr2
     stop
 end if
 
@@ -1517,14 +1574,34 @@ ierr = cudaDeviceSynchronize()
 ierr2 = ierr2 + ierr
 ierr = cublasDscal(cublashandle,n,minus_one,devPtrR,1)
 ierr2 = ierr2 + ierr
+if (ierr2 .ne. 0 ) then
+    write (*, '(A, I2)') " Error during Dscal 2 ", ierr2
+    stop
+end if
 ierr = cublasDaxpy(cublashandle,n,one,devPtrF,1,devPtrR,1)
 ierr2 = ierr2 + ierr
+if (ierr2 .ne. 0 ) then
+    write (*, '(A, I2)') " Error during Daxpy ", ierr2
+    stop
+end if
 ierr = cublasDcopy(cublashandle,n,devPtrR,1,devPtrRW,1)
 ierr2 = ierr2 + ierr
+if (ierr2 .ne. 0 ) then
+    write (*, '(A, I2)') " Error during Dcopy 1 ", ierr2
+    stop
+end if
 ierr = cublasDcopy(cublashandle,n,devPtrR,1,devPtrP,1)
 ierr2 = ierr2 + ierr
+if (ierr2 .ne. 0 ) then
+    write (*, '(A, I2)') " Error during Dcopy 2 ", ierr2
+    stop
+end if
 ierr = cublasDnrm2(cublashandle,n,devPtrR,1,normPtr)
 ierr2 = ierr2 + ierr
+if (ierr2 .ne. 0 ) then
+    write (*, '(A, I2)') " Error during dnrm2 ", ierr2
+    stop
+end if
 ierr = cudaDeviceSynchronize()
 ierr2 = ierr2 + ierr
 if (ierr2 .ne. 0 ) then
@@ -1796,6 +1873,35 @@ real(kind=dp) minus_one
 parameter (minus_one=-1.0d0)
 real(kind=dp) one
 parameter (one=1.0d0)
+
+
+! write(*,*) 'Overwriting solution space'
+! n=5
+! inz = 13
+
+! b(1) = 1.0d0; b(2)=1.0d0; b(3)=5.0d0; b(4)=2.0d0
+! b(5) = 1.0d0; b(6)=3.0d0; b(7)=2.0d0; b(8)=1.0d0
+! b(9) = 6.0d0; b(10)=3.0d0; b(11)=1.0d0; b(12)=2.0d0
+! b(13) = 1.0d0
+
+! rhs(1)=1.0d0;rhs(2)=2.0d0;rhs(3)=1.0d0;rhs(4)=3.0d0;rhs(5)=0.0d0
+
+! ib(1) = 1;ib(2) = 5;ib(3) = 7
+! ib(4) = 9;ib(5) = 12;ib(6) = 14
+
+! jb(1) = 1; jb(2)  = 2; jb(3) = 4; jb(4) = 5
+! jb(5) = 2; jb(6)  = 3; jb(7) = 2; jb(8) = 3
+! jb(9) = 1; jb(10) = 3;jb(11) = 4;jb(12) = 4
+! jb(13) = 5
+
+!solution
+! x(1)=0.08
+! x(2)=0.2
+! x(3)=0.6
+! x(4)=0.72
+! x(5)=-1.44
+
+! write(*,*) n,inz
 
 ireorder = 1
 iresid = 0
