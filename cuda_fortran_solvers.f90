@@ -575,7 +575,7 @@ module cuda_cusolve_map
  type(c_ptr), value::csrColIndA
  type(c_ptr), value::info
  integer(c_int),value::policy
- type(c_ptr)::pBuffer
+ type(c_ptr), value::pBuffer
  end function cusparseDcsrilu02_analysis
 
  integer(c_int) function cusparseDcsrsv2_analysis(handle,CUSPARSE_OPERATION,&
@@ -594,7 +594,7 @@ module cuda_cusolve_map
  type(c_ptr), value::csrColIndA
  type(c_ptr),value::info
  integer(c_int),value::policy
- type(c_ptr)::pBuffer
+ type(c_ptr),value::pBuffer
  end function cusparseDcsrsv2_analysis
 
  integer(c_int) function cusparseDcsrsv2_solve(handle,CUSPARSE_OPERATION,&
@@ -614,10 +614,10 @@ module cuda_cusolve_map
  type(c_ptr),value::csrRowPtrA
  type(c_ptr),value::csrColIndA
  type(c_ptr),value::info
- type(c_ptr)::x
- type(c_ptr)::y
+ type(c_ptr),value::x
+ type(c_ptr),value::y
  integer(c_int),value::policy
- type(c_ptr)::pBuffer
+ type(c_ptr),value::pBuffer
  end function cusparseDcsrsv2_solve
 
  integer(c_int) function cusparseDcsrilu02(handle,n,inz,descrA,csrValM,&
@@ -635,7 +635,7 @@ module cuda_cusolve_map
  type(c_ptr),value::csrColIndA
  type(c_ptr),value::info
  integer(c_int),value::policy
- type(c_ptr)::pBuffer
+ type(c_ptr),value::pBuffer
  end function cusparseDcsrilu02
 
  integer(c_int) function cusparseXcsrilu02_zeroPivot(handle,info,jcord) &
@@ -645,7 +645,7 @@ module cuda_cusolve_map
  implicit none
  type(c_ptr),value::handle
  type(c_ptr),value::info
- type(c_ptr) :: jcord
+ type(c_ptr),value :: jcord
  end function cusparseXcsrilu02_zeroPivot
 
  end interface  
@@ -669,8 +669,9 @@ double precision tol,norm_val,norm_val0
 target norm_val,norm_val0
 double precision rho,rhop,beta,alpha,negalpha
 target rho
-double precision omega,negomega,temp,temp2,bad_pos
+double precision omega,negomega,temp,temp2
 target temp,temp2,bad_pos
+integer(c_int) bad_pos
 
 integer, parameter :: dp = kind(1.d0)
 
@@ -729,12 +730,6 @@ parameter (CUBLAS_OP_N=0)
 parameter (CUBLAS_OP_T=1)
 
 ! the constants are used in residual evaluation, r = b - A*x
-real(kind=dp) minus_one
-parameter (minus_one=-1.0d0)
-real(kind=dp) one
-parameter (one=1.0d0)
-real(kind=dp) zero
-parameter (zero=1.0d0)
 integer(c_int) :: buffer_m,buffer_l,buffer_u,buffer_size
 target buffer_m,buffer_l,buffer_u
 integer(c_size_t) :: buffer_malloc
@@ -742,6 +737,11 @@ type(c_ptr) :: buffer_m_ptr
 type(c_ptr) :: buffer_l_ptr
 type(c_ptr) :: buffer_u_ptr
 type(c_ptr) :: buffer_gpu 
+
+real(kind=dp) minus_one, one, zero
+minus_one = -1.0d0
+one = 1.0d0
+zero = 0.0d0
 
 
 ierr2 = 0
@@ -958,16 +958,13 @@ ierr = cusparseDcsrsv2_bufferSize(cusparseHandle,CUBLAS_OP_N,n,inz,descrU,&
         devPtrMval,devPtrMrowsIndex,devPtrMcolsIndex,info_u,buffer_u)
 ierr2 = ierr2 + ierr
 buffer_size = max(buffer_m,buffer_l,buffer_u)
-write(*,*) 'Buffer sizes : ',buffer_m, buffer_l, buffer_u
-write(*,*) 'Max buffer size : ',buffer_size
 if (ierr2 .ne. 0 ) then
     write (*, '(A, I2)') " Error during buffer space calculation ", ierr2
     stop
 end if
 
 write(*,*) 'Allocating buffer'
-buffer_malloc=buffer_size*1
-write(*,*) 'Buffer malloc size : ',buffer_malloc
+buffer_malloc=buffer_size
 ierr = cudaMalloc(buffer_gpu,buffer_malloc)
 ierr2 = ierr2 + ierr
 if (ierr2 .ne. 0 ) then
@@ -986,7 +983,7 @@ end if
 ierr = cusparseXcsrilu02_zeroPivot(cusparseHandle,info_m,bad_posPtr)
 ierr2 = ierr2 + ierr
 if (bad_pos .ne. -1 ) then
-    write (*, '(A, I2)') " Diagonal element is missing: ", bad_pos
+    write (*, *) " Diagonal element is missing: ", bad_pos
 end if
 if (ierr2 .ne. 0 ) then
     write (*, '(A, I2)') " Error during zero point ", ierr2
@@ -1016,7 +1013,7 @@ end if
 ierr = cusparseXcsrilu02_zeroPivot(cusparseHandle,info_m,bad_posPtr)
 ierr2 = ierr2 + ierr
 if (bad_pos .ne. -1 ) then
-    write (*, '(A, I2)') " Diagonal element U is zero: ", bad_pos
+    write (*, *) " Diagonal element U is zero: ", bad_pos
 end if
 if (ierr2 .ne. 0 ) then
     write (*, '(A, I2)') " Error during zero point ", ierr2
@@ -1038,7 +1035,7 @@ ierr = cublasDcopy(cublashandle,n,devPtrR,1,devPtrRW,1)
 ierr2 = ierr2 + ierr
 ierr = cublasDcopy(cublashandle,n,devPtrR,1,devPtrP,1)
 ierr2 = ierr2 + ierr
-ierr = cublasDnrm2(cublashandle,n,devPtrR,1,normPtr)
+ierr = cublasDnrm2(cublashandle,n,devPtrR,1,normPtr0)
 ierr2 = ierr2 + ierr
 ierr = cudaDeviceSynchronize()
 ierr2 = ierr2 + ierr
@@ -1046,6 +1043,7 @@ if (ierr2 .ne. 0 ) then
     write (*, '(A, I2)') " Error during iteration setup ", ierr2
     stop
 end if
+write(*,*) 'Beginning iteration loop'
 inum_it=1
 do 12 ii = 1,imax_num_it
   rhop=rho
@@ -1064,7 +1062,7 @@ do 12 ii = 1,imax_num_it
       stop
     end if
   end if
-  write(*,*) 'Preconditioning solve step 1'
+  !write(*,*) 'Preconditioning solve step 1'
   ierr = cudaDeviceSynchronize()
   ierr2 = ierr2 + ierr
   ierr = cusparseSetMatFillMode(descrM,CUBLAS_OP_N)
@@ -1091,7 +1089,7 @@ do 12 ii = 1,imax_num_it
     write (*, '(A, I2)') " Error during preconditioning solve 1 ", ierr2
     stop
   end if
-  write(*,*) ' Checking solution to stage 1'
+  !write(*,*) ' Checking solution to stage 1'
   ierr = cusparseDcsrmv(cusparseHandle,CUBLAS_OP_N,n,n,inz,one,descrA,&
           devPtrAval,devPtrArowsIndex,devPtrAcolsIndex,devPtrPW,zero,devPtrV)
   ierr2 = ierr2 + ierr
@@ -1115,7 +1113,7 @@ do 12 ii = 1,imax_num_it
     isol_found=1
     go to 13
   end if
-  write(*,*) 'Preconditioning solve step 2'
+  !write(*,*) 'Preconditioning solve step 2'
   ierr = cudaDeviceSynchronize()
   ierr2 = ierr2 + ierr
   ierr = cusparseSetMatFillMode(descrM,CUBLAS_OP_N)
@@ -1126,6 +1124,10 @@ do 12 ii = 1,imax_num_it
           devPtrMval,devPtrMrowsIndex,devPtrMcolsIndex,info_l,devPtrR,devPtrT,&
           CUBLAS_OP_T,buffer_gpu)
   ierr2 = ierr2 + ierr
+    if (ierr2 .ne. 0 ) then
+    write (*, '(A, I2)') " Error during preconditioning solve 2 -1", ierr2
+    stop
+  end if
   ierr = cudaDeviceSynchronize()
   ierr2 = ierr2 + ierr
   ierr = cusparseSetMatFillMode(descrM,CUBLAS_OP_T)
@@ -1133,16 +1135,20 @@ do 12 ii = 1,imax_num_it
   ierr = cusparseSetMatDiagType(descrM,CUBLAS_OP_N)
   ierr2 = ierr2 + ierr
   ierr = cusparseDcsrsv2_solve(cusparseHandle,CUBLAS_OP_N,n,inz,one,descrU,&
-          devPtrMval,devPtrMrowsIndex,devPtrMcolsIndex,info_l,devPtrT,devPtrS,&
+          devPtrMval,devPtrMrowsIndex,devPtrMcolsIndex,info_u,devPtrT,devPtrS,&
           CUBLAS_OP_T,buffer_gpu)
   ierr2 = ierr2 + ierr
+    if (ierr2 .ne. 0 ) then
+    write (*, '(A, I2)') " Error during preconditioning solve 2 -2", ierr2
+    stop
+  end if
   ierr = cudaDeviceSynchronize()
   ierr2 = ierr2 + ierr
   if (ierr2 .ne. 0 ) then
     write (*, '(A, I2)') " Error during preconditioning solve 2 ", ierr2
     stop
   end if
-  write(*,*) ' Checking solution to stage 2'
+  !write(*,*) ' Checking solution to stage 2'
   ierr = cusparseDcsrmv(cusparseHandle,CUBLAS_OP_N,n,n,inz,one,descrA,&
           devPtrAval,devPtrArowsIndex,devPtrAcolsIndex,devPtrS,zero,devPtrT)
   ierr2 = ierr2 + ierr
@@ -1179,7 +1185,7 @@ end if
 
 if (isol_found.eq.1) then
   write(*,'(A, I2)') 'Solution found within tolerance after iter: ',ii
-else if (ii.eq.imax_num_it) then
+else if (ii.ge.imax_num_it) then
   write(*,'(A, I2)') 'Did not achieve convergence within max iterations',imax_num_it
 else
   write(*,*) 'Should not get here'
@@ -1197,10 +1203,6 @@ ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrAcolsIndex)
 ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrAval)
-ierr2 = ierr2 + ierr
-ierr = cudaFree(devPtrMrowsIndex)
-ierr2 = ierr2 + ierr
-ierr = cudaFree(devPtrMcolsIndex)
 ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrMval)
 ierr2 = ierr2 + ierr
@@ -1319,20 +1321,24 @@ parameter (CUBLAS_OP_N=0)
 parameter (CUBLAS_OP_T=1)
 parameter (CUBLAS_OP_TRI=3)
 
-! the constants are used in residual evaluation, r = b - A*x
-real(kind=dp) minus_one
-parameter (minus_one=-1.0d0)
-real(kind=dp) one
-parameter (one=1.0d0)
-real(kind=dp) zero
-parameter (zero=1.0d0)
+!the constants are used in residual evaluation, r = b - A*x
+! real(kind=dp) minus_one
+! parameter (minus_one=-1.0d0)
+! real(kind=dp) one
+! parameter (one=1.0d0)
+! real(kind=dp) zero
+! parameter (zero=1.0d0)
+real(kind=dp) minus_one, one, zero
+minus_one = -1.0d0
+one = 1.0d0
+zero = 0.0d0
 
 
 
 
 ierr2 = 0
 isol_found=0
-imax_num_it =  10
+imax_num_it =  40
 rho = 0.0d0
 norm_val = 1.d5
 norm_val0 = 1.d5
@@ -1574,34 +1580,14 @@ ierr = cudaDeviceSynchronize()
 ierr2 = ierr2 + ierr
 ierr = cublasDscal(cublashandle,n,minus_one,devPtrR,1)
 ierr2 = ierr2 + ierr
-if (ierr2 .ne. 0 ) then
-    write (*, '(A, I2)') " Error during Dscal 2 ", ierr2
-    stop
-end if
 ierr = cublasDaxpy(cublashandle,n,one,devPtrF,1,devPtrR,1)
 ierr2 = ierr2 + ierr
-if (ierr2 .ne. 0 ) then
-    write (*, '(A, I2)') " Error during Daxpy ", ierr2
-    stop
-end if
 ierr = cublasDcopy(cublashandle,n,devPtrR,1,devPtrRW,1)
 ierr2 = ierr2 + ierr
-if (ierr2 .ne. 0 ) then
-    write (*, '(A, I2)') " Error during Dcopy 1 ", ierr2
-    stop
-end if
 ierr = cublasDcopy(cublashandle,n,devPtrR,1,devPtrP,1)
 ierr2 = ierr2 + ierr
-if (ierr2 .ne. 0 ) then
-    write (*, '(A, I2)') " Error during Dcopy 2 ", ierr2
-    stop
-end if
-ierr = cublasDnrm2(cublashandle,n,devPtrR,1,normPtr)
+ierr = cublasDnrm2(cublashandle,n,devPtrR,1,normPtr0)
 ierr2 = ierr2 + ierr
-if (ierr2 .ne. 0 ) then
-    write (*, '(A, I2)') " Error during dnrm2 ", ierr2
-    stop
-end if
 ierr = cudaDeviceSynchronize()
 ierr2 = ierr2 + ierr
 if (ierr2 .ne. 0 ) then
@@ -1609,6 +1595,7 @@ if (ierr2 .ne. 0 ) then
     stop
 end if
 inum_it=1
+write(*,*) 'Beginning iteration loop'
 do 12 ii = 1,imax_num_it
   rhop=rho
   ierr = cublasDdot(cublashandle,n,devPtrRW,1,devPtrR,1,rhoPtr)
@@ -1626,7 +1613,7 @@ do 12 ii = 1,imax_num_it
       stop
     end if
   end if
-  write(*,*) 'Preconditioning solve step 1'
+  !write(*,*) 'Preconditioning solve step 1'
   ierr = cudaDeviceSynchronize()
   ierr2 = ierr2 + ierr
   ierr = cusparseSetMatFillMode(descrM,CUBLAS_OP_N)
@@ -1643,7 +1630,7 @@ do 12 ii = 1,imax_num_it
   ierr = cusparseSetMatDiagType(descrM,CUBLAS_OP_N)
   ierr2 = ierr2 + ierr
   ierr = cusparseDcsrsv_solve(cusparseHandle,CUBLAS_OP_N,n,one,descrM,&
-          devPtrMval,devPtrMrowsIndex,devPtrMcolsIndex,info_l,devPtrT,devPtrPW)
+          devPtrMval,devPtrMrowsIndex,devPtrMcolsIndex,info_u,devPtrT,devPtrPW)
   ierr2 = ierr2 + ierr
   ierr = cudaDeviceSynchronize()
   ierr2 = ierr2 + ierr
@@ -1651,7 +1638,7 @@ do 12 ii = 1,imax_num_it
     write (*, '(A, I2)') " Error during preconditioning solve 1 ", ierr2
     stop
   end if
-  write(*,*) ' Checking solution to stage 1'
+  !write(*,*) ' Checking solution to stage 1'
   ierr = cusparseDcsrmv(cusparseHandle,CUBLAS_OP_N,n,n,inz,one,descrA,&
           devPtrAval,devPtrArowsIndex,devPtrAcolsIndex,devPtrPW,zero,devPtrV)
   ierr2 = ierr2 + ierr
@@ -1675,7 +1662,7 @@ do 12 ii = 1,imax_num_it
     isol_found=1
     go to 13
   end if
-  write(*,*) 'Preconditioning solve step 2'
+  !write(*,*) 'Preconditioning solve step 2'
   ierr = cudaDeviceSynchronize()
   ierr2 = ierr2 + ierr
   ierr = cusparseSetMatFillMode(descrM,CUBLAS_OP_N)
@@ -1692,7 +1679,7 @@ do 12 ii = 1,imax_num_it
   ierr = cusparseSetMatDiagType(descrM,CUBLAS_OP_N)
   ierr2 = ierr2 + ierr
   ierr = cusparseDcsrsv_solve(cusparseHandle,CUBLAS_OP_N,n,one,descrM,&
-          devPtrMval,devPtrMrowsIndex,devPtrMcolsIndex,info_l,devPtrT,devPtrS)
+          devPtrMval,devPtrMrowsIndex,devPtrMcolsIndex,info_u,devPtrT,devPtrS)
   ierr2 = ierr2 + ierr
   ierr = cudaDeviceSynchronize()
   ierr2 = ierr2 + ierr
@@ -1700,7 +1687,7 @@ do 12 ii = 1,imax_num_it
     write (*, '(A, I2)') " Error during preconditioning solve 2 ", ierr2
     stop
   end if
-  write(*,*) ' Checking solution to stage 2'
+  !write(*,*) ' Checking solution to stage 2'
   ierr = cusparseDcsrmv(cusparseHandle,CUBLAS_OP_N,n,n,inz,one,descrA,&
           devPtrAval,devPtrArowsIndex,devPtrAcolsIndex,devPtrS,zero,devPtrT)
   ierr2 = ierr2 + ierr
@@ -1737,7 +1724,7 @@ end if
 
 if (isol_found.eq.1) then
   write(*,'(A, I2)') 'Solution found within tolerance after iter: ',ii
-else if (ii.eq.imax_num_it) then
+else if (ii.ge.imax_num_it) then
   write(*,'(A, I2)') 'Did not achieve convergence within max iterations',imax_num_it
 else
   write(*,*) 'Should not get here'
@@ -1756,24 +1743,20 @@ ierr = cudaFree(devPtrAcolsIndex)
 ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrAval)
 ierr2 = ierr2 + ierr
-ierr = cudaFree(devPtrMrowsIndex)
-ierr2 = ierr2 + ierr
-ierr = cudaFree(devPtrMcolsIndex)
-ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrMval)
-ierr2 = ierr2 + ierr
+ierr2 = ierr2 + ierr 
 ierr = cudaFree(devPtrX)
 ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrF)
 ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrR)
-ierr2 = ierr2 + ierr
+ierr2 = ierr2 + ierr 
 ierr = cudaFree(devPtrRW)
 ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrP)
 ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrPW)
-ierr2 = ierr2 + ierr
+ierr2 = ierr2 + ierr 
 ierr = cudaFree(devPtrS)
 ierr2 = ierr2 + ierr
 ierr = cudaFree(devPtrT)

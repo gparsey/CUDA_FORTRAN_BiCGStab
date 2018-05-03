@@ -9,9 +9,6 @@ to use a fortran compiler (as opposed to having a c/c++ interface).
 
 NOTE
 ====
-The two implementations of BiCGStab are not working, any help on the matter would be 
-greatly appreciated. The implementation of the QR decomposition is working correctly.
-
 Testing has been performed using the CUDA 9.1 Toolkit and iFort 17.0.4.196
 
 GPU being used is a Tesla P4 card
@@ -40,19 +37,13 @@ cuda_fortran_solvers.f90 : Fortran header-equivalent module for referencing CUDA
                                        -- method1 in test_fortcuda.for
                                        
 ---> subroutine cuda_BiCGStab : Iterative BiCGStab solver based on the CUDA sample 
-                                pbicgstab.cpp using the standard ILU preconditioner. This
-                                solver is not working with a CUSPARSE_INTERNAL_ERROR being 
-                                returned from cusparseDcsrsv_analysis (line 1467)
+                                pbicgstab.cpp using the standard ILU preconditioner.
                                 -- method2 in test_fortcuda.for
                                 
 ---> subroutine cuda_BiCGStab2 : Iterative BiCGStab solver based off of the previous subroutine
                                  and the example usage domino scheme cusparseDcsrilu02 (section 10.9-11
                                  of the CUDA 9.1 Toolkit documentation). This was
-                                 mainly implemented as a sanity check of the previous cuda_BiCGStab,
-                                 however seems to be broken in the same manner. This 
-                                 solver is not working with a CUSPARSE_INTERNAL_ERROR being 
-                                 returned from cusparseDcsrilu02_analysis (line 953)
-                                 -- method3 in test_fortcuda.for
+                                 mainly implemented as a sanity check of the previous cuda_BiCGStab.
                     
 
 
