@@ -397,7 +397,7 @@ module cuda_cusolve_map
  implicit none
  type(c_ptr), value :: handle
  integer(c_int), value :: n
- real(c_double)::alpha
+ real(c_double) ::alpha
  type(c_ptr),value :: x
  integer(c_int),value :: incx
  end function cublasDscal
@@ -411,9 +411,9 @@ module cuda_cusolve_map
  integer(c_int), value :: n
  real(c_double)::alpha
  type(c_ptr),value :: x
- integer(c_int) :: incx
+ integer(c_int),value :: incx
  type(c_ptr),value :: y
- integer(c_int) :: incy
+ integer(c_int),value :: incy
  end function cublasDaxpy
 
  integer(c_int) function cublasDcopy(handle,n,x,incx,y,incy) &
@@ -424,9 +424,9 @@ module cuda_cusolve_map
  type(c_ptr), value :: handle
  integer(c_int), value :: n
  type(c_ptr),value :: x
- integer(c_int) :: incx
+ integer(c_int),value :: incx
  type(c_ptr),value :: y
- integer(c_int) :: incy
+ integer(c_int),value :: incy
  end function cublasDcopy
 
  integer(c_int) function cublasDnrm2(handle,n,x,incx,result) &
@@ -437,7 +437,7 @@ module cuda_cusolve_map
  type(c_ptr), value :: handle
  integer(c_int), value :: n
  type(c_ptr),value :: x
- integer(c_int) :: incx
+ integer(c_int),value :: incx
  type(c_ptr),value :: result
  end function cublasDnrm2
 
@@ -448,11 +448,11 @@ module cuda_cusolve_map
  implicit none
  type(c_ptr), value :: handle
  integer(c_int), value :: n
- type(c_ptr) :: x
- integer(c_int) :: incx
- type(c_ptr) :: y
- integer(c_int) :: incy
- type(c_ptr) :: result
+ type(c_ptr),value :: x
+ integer(c_int),value :: incx
+ type(c_ptr),value :: y
+ integer(c_int),value :: incy
+ type(c_ptr),value :: result
  end function cublasDdot
 
  integer(c_int) function cusparseDcsrsv_solve(handle,transA,m, &
@@ -467,12 +467,12 @@ module cuda_cusolve_map
  integer(c_int), value :: m
  real(c_double)::alpha
  type(c_ptr), value :: descrA
- type(c_ptr) :: csrSortedValA
- type(c_ptr) :: csrSortedRowPtrA
- type(c_ptr) :: csrSortedColIndA
+ type(c_ptr), value :: csrSortedValA
+ type(c_ptr), value :: csrSortedRowPtrA
+ type(c_ptr), value :: csrSortedColIndA
  type(c_ptr), value :: info
- type(c_ptr) :: f
- type(c_ptr) :: x
+ type(c_ptr), value :: f
+ type(c_ptr), value :: x
  end function cusparseDcsrsv_solve
 
  integer(c_int) function cusparseDestroySolveAnalysisInfo(info) &
@@ -610,9 +610,9 @@ module cuda_cusolve_map
  integer(c_int),value::nnz
  real(c_double)::alpha
  type(c_ptr), value:: descrA
- type(c_ptr)::csrValM
- type(c_ptr)::csrRowPtrA
- type(c_ptr)::csrColIndA
+ type(c_ptr),value::csrValM
+ type(c_ptr),value::csrRowPtrA
+ type(c_ptr),value::csrColIndA
  type(c_ptr),value::info
  type(c_ptr)::x
  type(c_ptr)::y
@@ -630,9 +630,9 @@ module cuda_cusolve_map
  integer(c_int),value::n
  integer(c_int),value::inz
  type(c_ptr), value:: descrA
- type(c_ptr)::csrValM
- type(c_ptr)::csrRowPtrA
- type(c_ptr)::csrColIndA
+ type(c_ptr),value::csrValM
+ type(c_ptr),value::csrRowPtrA
+ type(c_ptr),value::csrColIndA
  type(c_ptr),value::info
  integer(c_int),value::policy
  type(c_ptr)::pBuffer
