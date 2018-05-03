@@ -13,8 +13,8 @@ c======================================================================
        logical method1,method2,method3
 
        method1=.true.
-       method2=.false.
-       method3=.true.
+       method2=.true.
+       method3=.false.
 
        tol = 1.0d-8
 
